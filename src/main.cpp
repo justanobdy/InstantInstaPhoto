@@ -18,8 +18,6 @@ int Object::lastID = 0;
 int main() {
     std::shared_ptr<App> app = App::Create();
 
-    app->AddObject<SpriteObject>("mountain.png");
-    app->AddObject<SpriteObject>("red.png");
     app->AddModule<SelectModule>();
     app->AddModule<DetailModule>();
     app->AddModule<ObjectListModule>();

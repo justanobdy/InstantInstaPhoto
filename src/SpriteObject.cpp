@@ -2,6 +2,10 @@
 
 #include <iostream>
 
+#include <imgui_stdlib.h>
+
+#include <portable-file-dialogs.h>
+
 SpriteObject::SpriteObject()
 	: Object(), texture(sf::Vector2u(1, 1)), sprite(texture)
 {
@@ -18,11 +22,7 @@ SpriteObject::SpriteObject(const std::filesystem::path& file)
 	:	Object(), texture(file), sprite(texture), filename(file)
 {
 	// Needed to fix an issue with SFML, even if it is redundant
-	sprite.setTexture(texture, true);
-
-	sprite.setOrigin(sf::Vector2f(texture.getSize().componentWiseDiv(sf::Vector2u(2, 2))));
-
-	sprite.setPosition(sf::Vector2f(0, 0));
+	SetTexture(file);
 
 	SetName(file.generic_string());
 }
@@ -121,14 +121,7 @@ void SpriteObject::Deserialize(const nlohmann::json& json)
 	}
 	*/
 
-	texture.loadFromFile(json["filename"]);
-
-	SetName(json["filename"]);
-
-	sprite.setTexture(texture, true);
-
-	sprite.setOrigin(sf::Vector2f(texture.getSize().componentWiseDiv(sf::Vector2u(2, 2))));
-	sprite.setPosition(sf::Vector2f(0, 0));
+	SetTexture(json["filename"]);
 
 	sprite.setPosition(sf::Vector2f(json["position"]["x"], json["position"]["y"]));
 	sprite.setScale(sf::Vector2f(json["scale"]["x"], json["scale"]["y"]));
@@ -160,4 +153,42 @@ nlohmann::json SpriteObject::Serialize() const
 	json["angle"] = sprite.getRotation().asRadians();
 
 	return json;
+}
+
+void SpriteObject::DisplayCustomDetailComponents()
+{
+	std::string filenameStr = filename.generic_string();
+
+	imgui::Text("Filename: ");
+
+	imgui::SameLine();
+
+	imgui::BeginDisabled();
+	imgui::InputText("##filename", &filenameStr);
+	imgui::EndDisabled();
+
+	imgui::SameLine();
+
+	if (imgui::Button("...")) {
+		auto result = pfd::open_file("Select a new image", ".", { "Image Files", "*.bmp *.png *.tga *.jpg *.gif *.psd *.hdr *.pic *.pnm" });
+
+		if (!result.result().empty()) {
+			std::string file = result.result()[0];
+
+			SetTexture(file);
+		}
+	}
+}
+
+void SpriteObject::SetTexture(const std::filesystem::path& newTexture)
+{
+	texture.loadFromFile(newTexture);
+
+	filename = newTexture;
+
+	sprite.setTexture(texture, true);
+
+	sprite.setOrigin(sf::Vector2f(texture.getSize().componentWiseDiv(sf::Vector2u(2, 2))));
+
+	SetName(newTexture.generic_string());
 }

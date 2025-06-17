@@ -74,6 +74,8 @@ void DetailModule::Update() {
             imgui::InputInt("Z Layer", &zLayer);
 
             object->SetZLayer(zLayer);
+
+            object->DisplayCustomDetailComponents();
         }
 
         imgui::End();

@@ -34,6 +34,10 @@ public:
 	int GetZLayer() const override;
 
 	void SetZLayer(int layer) override;
+
+	void DisplayCustomDetailComponents() override;
+
+	void SetTexture(const std::filesystem::path& newTexture);
 private:
 	sf::Sprite sprite;
 	sf::Texture texture;

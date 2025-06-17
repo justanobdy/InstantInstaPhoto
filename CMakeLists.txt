@@ -11,6 +11,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 find_package(nlohmann_json 3.12.0 REQUIRED)
 
+option(SFML_STATIC ON)
+
 if(SFML_STATIC)
     set(SFML_STATIC_LIBRARIES ON)
 endif()

@@ -106,8 +106,6 @@ void App::run()
 
     sf::Clock deltaClock;
 
-    objects[0]->SetSize(sf::Vector2f(100, 100));
-
     view = sf::View(sf::FloatRect({ 0.f, 0.f }, sf::Vector2f(windowSize)));
 
     //imgui::GetIO().FontGlobalScale = 1.5f;
@@ -117,6 +115,8 @@ void App::run()
     imgui::GetIO().Fonts->AddFontFromFileTTF("fnt/InterVariable.ttf", 25);
 
     imgui::SFML::UpdateFontTexture();
+
+    window.setFileDroppingEnabled(true);
 
     bool mousePressedLastFrame = false;
 
@@ -146,9 +146,15 @@ void App::run()
                     state.draggingObjectPosition = true;
                 }
             }
+
+            if (const auto dropped = event->getIf<sf::Event::FilesDropped>()) {
+                for (const auto& item : dropped->filenames) {
+                    AddObject<SpriteObject>(std::filesystem::path(item));
+                }
+            }
         }
 
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Middle)) {
+        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Middle) || (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && state.currentSelectedObject == std::nullopt && window.hasFocus())) {
             if (!isDraggingView) {
                 isDraggingView = true;
 
@@ -169,7 +175,6 @@ void App::run()
         ImGui::SFML::Update(window, deltaClock.restart());
 
         imgui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
-        
 
         if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
             state.draggingObjectPosition = false;

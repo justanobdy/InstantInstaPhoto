@@ -78,6 +78,8 @@ public:
 
 	virtual void SetZLayer(int newLayer) = 0;
 
+	virtual void DisplayCustomDetailComponents() {};
+
 	void SetName(const std::string& newName);
 
 	const std::string& GetName() const;

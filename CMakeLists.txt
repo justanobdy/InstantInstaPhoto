@@ -45,11 +45,12 @@ set(HEADERS
     "include/NewProjectModule.hpp"
     "include/EditProjectModule.hpp"
     "include/ProjectManager.hpp"
+    "include/ErrorModule.hpp"
 )
 
 set(SOURCES
         src/main.cpp
- "src/SpriteObject.cpp" "src/App.cpp"  "src/SelectModule.cpp" "src/Object.cpp" "src/DetailModule.cpp" "src/ObjectListModule.cpp" "src/AppState.cpp" "src/Exporter.cpp" "src/Module.cpp" "src/ObjectContextModule.cpp" "src/MenuBarModule.cpp" "src/NewProjectModule.cpp" "src/EditProjectModule.cpp" "src/ProjectManager.cpp")
+ "src/SpriteObject.cpp" "src/App.cpp"  "src/SelectModule.cpp" "src/Object.cpp" "src/DetailModule.cpp" "src/ObjectListModule.cpp" "src/AppState.cpp" "src/Exporter.cpp" "src/Module.cpp" "src/ObjectContextModule.cpp" "src/MenuBarModule.cpp" "src/NewProjectModule.cpp" "src/EditProjectModule.cpp" "src/ProjectManager.cpp" "src/ErrorModule.cpp")
 
 add_executable(${PROJECT_NAME}
         ${SOURCES}

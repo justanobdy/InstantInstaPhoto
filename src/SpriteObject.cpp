@@ -6,20 +6,30 @@
 
 #include <portable-file-dialogs.h>
 
-SpriteObject::SpriteObject()
-	: Object(), texture(sf::Vector2u(1, 1)), sprite(texture)
+#include <ErrorModule.hpp>
+#include <App.hpp>
+
+SpriteObject::SpriteObject(std::weak_ptr<App> app)
+	: Object(app), texture(sf::Vector2u(1, 1)), sprite(texture)
 {
+	initEmpty();
+
+	SetName("Image " + std::to_string(GetTotalCreatedObjects()));
+}
+
+void SpriteObject::initEmpty()
+{
+	texture = sf::Texture(sf::Vector2u(1, 1));
+
 	sprite.setTexture(texture, true);
 
 	sprite.setOrigin(sf::Vector2f(texture.getSize().componentWiseDiv(sf::Vector2u(2, 2))));
 
 	sprite.setPosition(sf::Vector2f(0, 0));
-
-	SetName("Image " + std::to_string(GetTotalCreatedObjects()));
 }
 
-SpriteObject::SpriteObject(const std::filesystem::path& file)
-	:	Object(), texture(file), sprite(texture), filename(file)
+SpriteObject::SpriteObject(std::weak_ptr<App> app, const std::filesystem::path& file)
+	:	Object(app), texture(sf::Vector2u(1, 1)), sprite(texture), filename(file)
 {
 	// Needed to fix an issue with SFML, even if it is redundant
 	SetTexture(file);
@@ -182,7 +192,15 @@ void SpriteObject::DisplayCustomDetailComponents()
 
 void SpriteObject::SetTexture(const std::filesystem::path& newTexture)
 {
-	texture.loadFromFile(newTexture);
+	if (!texture.loadFromFile(newTexture)) {
+		app.lock()->AddModule<ErrorModule>("Error: Unable to open file \"" + newTexture.generic_string() + "\"!");
+
+		initEmpty();
+
+		QueueDelete();
+
+		return;
+	}
 
 	filename = newTexture;
 

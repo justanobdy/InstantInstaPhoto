@@ -4,6 +4,9 @@
 
 App::App()
 {
+    red = sf::RectangleShape({ 2.f, 2.f });
+    red.setFillColor(sf::Color::Red);
+
     ApplySettings(state.projectSettings);
 
     SetupObjectMap();
@@ -134,7 +137,7 @@ void App::run()
 
             if (const auto* resized = event->getIf<sf::Event::Resized>())
             {
-                sf::FloatRect visibleArea({ 0.f, 0.f }, sf::Vector2f(resized->size));
+                sf::FloatRect visibleArea(viewCenter, sf::Vector2f(resized->size).componentWiseDiv(state.zoomFactor));
 
                 view = sf::View(visibleArea);
             }
@@ -152,19 +155,34 @@ void App::run()
                     AddObject<SpriteObject>(std::filesystem::path(item));
                 }
             }
+
+            if (const auto* scroll = event->getIf<sf::Event::MouseWheelScrolled>()) {
+                state.zoomFactor += sf::Vector2f(scroll->delta / 10, scroll->delta / 10);
+
+                std::cout << scroll->delta << std::endl;
+
+                sf::FloatRect visibleArea(viewCenter, sf::Vector2f(window.getSize()).componentWiseDiv(state.zoomFactor));
+
+                view = sf::View(visibleArea);
+            }
         }
 
-        if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Middle) || (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && state.currentSelectedObject == std::nullopt && window.hasFocus())) {
+        // TODO: this should calculute the top-left
+        viewCenter = view.getCenter();
+
+        if ((sf::Mouse::isButtonPressed(sf::Mouse::Button::Middle) || (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && state.currentSelectedObject == std::nullopt)) && (window.hasFocus() && !imgui::GetIO().WantCaptureMouse)) {
             if (!isDraggingView) {
                 isDraggingView = true;
 
-                originalMousePosition = sf::Mouse::getPosition(window);
+                originalMousePosition = sf::Mouse::getPosition();
                 originalViewPosition = view.getCenter();
             }
 
-            auto mousePos = sf::Mouse::getPosition(window);
+            auto mousePos = sf::Mouse::getPosition();
 
-            view.setCenter(originalViewPosition - sf::Vector2f(mousePos - originalMousePosition));
+            sf::Vector2f delta = sf::Vector2f(mousePos - originalMousePosition);
+
+            view.setCenter(originalViewPosition - delta.componentWiseDiv(state.zoomFactor));
         }
         else {
             isDraggingView = false;
@@ -235,6 +253,10 @@ void App::run()
         //window.draw(sprite);
 
         ImGui::SFML::Render(window);
+        
+        red.setPosition(state.GetMousePosition());
+        window.draw(red);
+
         window.display();
 
         for (int i = 0; i < objects.size(); i++) {

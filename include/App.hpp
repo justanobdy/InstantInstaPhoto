@@ -22,8 +22,9 @@ public:
 	void run();
 
 	template<typename T, typename... Args>
+		requires std::is_base_of_v<Object, T>
 	std::weak_ptr<T> AddObject(Args... args) {
-		objects.push_back(std::make_shared<T>(args...));
+		objects.push_back(std::make_shared<T>(weak_from_this(), args...));
 
 		return std::static_pointer_cast<T>(objects.back());
 	}
@@ -31,6 +32,7 @@ public:
 	void AddObjectFromJson(const nlohmann::json& json);
 
 	template<typename T, typename... Args>
+		requires std::is_base_of_v<Module, T>
 	void AddModule(Args... args) {
 		modules.push_back(std::make_shared<T>(weak_from_this(), args...));
 	}
@@ -64,8 +66,12 @@ private:
 	sf::Vector2i originalMousePosition;
 	sf::Vector2f originalViewPosition;
 
+	sf::Vector2f viewCenter;
+
 	sf::RectangleShape previewRectangle;
 	std::vector<sf::RectangleShape> slideOutlines;
 
 	std::unordered_map<std::string, std::function<void(const nlohmann::json&)>> createMap;
+
+	sf::RectangleShape red;
 };

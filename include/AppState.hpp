@@ -31,4 +31,6 @@ struct AppState {
 	sf::Vector2f GetMousePosition() const;
 
 	ProjectSettings projectSettings;
+
+	sf::Vector2f zoomFactor = sf::Vector2f(2, 2);
 };

@@ -26,6 +26,11 @@ void Exporter::ExportImage(const std::filesystem::path& path, sf::Vector2u resol
 
 	std::vector<sf::Image> outputImages;
 
+	std::string extension = path.extension().generic_string();
+
+	if (extension.empty())
+		extension = ".png";
+
 	for (int i = 0; i < app.lock()->state.projectSettings.totalSlides; i++) {
 		sf::Image newImage = sf::Image(resolution, app.lock()->state.projectSettings.backgroundColor);
 
@@ -33,10 +38,7 @@ void Exporter::ExportImage(const std::filesystem::path& path, sf::Vector2u resol
 
 		std::string outputFile;
 
-		if (i > 0)
-			outputFile = path.parent_path().generic_string() + "/" + path.stem().generic_string() + "_" + std::to_string(i) + path.extension().generic_string();
-		else
-			outputFile = path.generic_string();
+		outputFile = path.parent_path().generic_string() + "/" + path.stem().generic_string() + "_" + std::to_string(i) + extension;
 
 		if (!newImage.saveToFile(outputFile)) {
 			std::cout << "Could not save file: " << outputFile << "!\n";

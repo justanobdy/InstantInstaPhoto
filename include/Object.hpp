@@ -42,12 +42,14 @@ struct ObjectRectInfo {
 	std::array<sf::Vector2f, 4> getCorners() const;
 };
 
+class App;
+
 class Object : public sf::Drawable {
 public:
 	//virtual void OnClick() = 0;
 
-	Object() 
-		:	ID(lastID++)
+	Object(std::weak_ptr<App> app) 
+		:	ID(lastID++), app(app)
 	{
 		totalCreatedObjects++;
 	}
@@ -93,6 +95,8 @@ public:
 	void QueueDelete();
 
 	const int ID;
+protected:
+	std::weak_ptr<App> app;
 private:
 	static int totalCreatedObjects;
 

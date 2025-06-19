@@ -5,7 +5,7 @@
 int Module::lastID = 0;
 
 Module::Module(std::weak_ptr<App> app)
-	:	app(app), ID(ID++)
+	: app(app), ID(lastID++)
 { }
 
 int Module::GetID() const {

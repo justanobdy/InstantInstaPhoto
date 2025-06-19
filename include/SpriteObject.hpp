@@ -5,8 +5,8 @@
 
 class SpriteObject : public Object {
 public:
-	SpriteObject();
-	SpriteObject(const std::filesystem::path& file);
+	SpriteObject(std::weak_ptr<App> app);
+	SpriteObject(std::weak_ptr<App> app, const std::filesystem::path& file);
 
 	void Update() override;
 
@@ -39,6 +39,8 @@ public:
 
 	void SetTexture(const std::filesystem::path& newTexture);
 private:
+	void initEmpty();
+
 	sf::Sprite sprite;
 	sf::Texture texture;
 

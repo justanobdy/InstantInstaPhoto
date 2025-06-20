@@ -7,4 +7,6 @@ public:
 	using ImGuiModule::ImGuiModule;
 
 	void Update() override;
+private:
+	bool open = true;
 };

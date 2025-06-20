@@ -5,10 +5,20 @@
 #include <imgui_stdlib.h>
 
 void DetailModule::Update() {
-    if (app.lock()->state.currentSelectedObject != std::nullopt) {
+    if (imgui::BeginMainMenuBar()) {
+        if (imgui::BeginMenu("View")) {
+            imgui::MenuItem("Object Details", nullptr, &open);
+
+            imgui::EndMenu();
+        }
+
+        imgui::EndMainMenuBar();
+    }
+
+    if (app.lock()->state.currentSelectedObject != std::nullopt && open) {
         std::shared_ptr<Object> object = app.lock()->state.currentSelectedObject.value().lock();
 
-        imgui::Begin("Object Options");
+        imgui::Begin("Object Options", &open);
 
         {
             std::string name = object->GetName();
@@ -80,14 +90,14 @@ void DetailModule::Update() {
 
         imgui::End();
     }
-    else {
+    else if(open) {
         // else create a fake replica
 
         float tempFloat = 0;
         bool tempBool = false;
         int tempInt = 0;
 
-        imgui::Begin("Object Options");
+        imgui::Begin("Object Options", &open);
 
         imgui::BeginDisabled();
 

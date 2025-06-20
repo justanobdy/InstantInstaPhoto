@@ -173,6 +173,10 @@ void App::run()
 
         viewCenter = view.getCenter();
 
+        //TODO:
+        // Add keyboard shortcuts
+        // add better error handling everywhere (but specifically around loading projects)
+
         if ((sf::Mouse::isButtonPressed(sf::Mouse::Button::Middle) || (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && state.currentSelectedObject == std::nullopt)) && (window.hasFocus() && !imgui::GetIO().WantCaptureMouse)) {
             if (!isDraggingView) {
                 isDraggingView = true;
@@ -183,7 +187,8 @@ void App::run()
 
             auto mousePos = sf::Mouse::getPosition();
 
-            sf::Vector2f delta = sf::Vector2f(mousePos - originalMousePosition).componentWiseDiv(sf::Vector2f(2, 2));
+            // TODO: look into why this is messed up on mac
+            sf::Vector2f delta = sf::Vector2f(mousePos - originalMousePosition);
 
             view.setCenter(originalViewPosition - delta.componentWiseDiv(state.zoomFactor));
         }

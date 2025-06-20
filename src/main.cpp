@@ -18,11 +18,13 @@ int Object::lastID = 0;
 int main() {
     std::shared_ptr<App> app = App::Create();
 
+    // This must always be first
+    app->AddModule<MenuBarModule>();
+
     app->AddModule<SelectModule>();
     app->AddModule<DetailModule>();
     app->AddModule<ObjectListModule>();
     app->AddModule<ObjectContextModule>();
-    app->AddModule<MenuBarModule>();
 
     app->run();
 

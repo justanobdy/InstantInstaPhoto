@@ -56,6 +56,10 @@ void MenuBarModule::Update()
 			imgui::EndMenu();
 		}
 
+		if (imgui::BeginMenu("View")) {
+			imgui::EndMenu();
+		}
+
 		imgui::EndMainMenuBar();
 	}
 }

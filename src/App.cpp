@@ -4,9 +4,6 @@
 
 App::App()
 {
-    red = sf::RectangleShape({ 2.f, 2.f });
-    red.setFillColor(sf::Color::Red);
-
     ApplySettings(state.projectSettings);
 
     SetupObjectMap();

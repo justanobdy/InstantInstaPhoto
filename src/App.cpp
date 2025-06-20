@@ -123,7 +123,7 @@ void App::run()
 
     bool mousePressedLastFrame = false;
 
-    sf::Vector2i dragOffset = sf::Vector2i(0, 0);
+    sf::Vector2f dragOffset = sf::Vector2f(0, 0);
 
     state.view = &view;
 
@@ -137,15 +137,17 @@ void App::run()
 
             if (const auto* resized = event->getIf<sf::Event::Resized>())
             {
-                sf::FloatRect visibleArea(viewCenter, sf::Vector2f(resized->size).componentWiseDiv(state.zoomFactor));
+                sf::FloatRect visibleArea({0, 0}, sf::Vector2f(resized->size).componentWiseDiv(state.zoomFactor));
 
                 view = sf::View(visibleArea);
+                
+                view.setCenter(viewCenter);
             }
 
             if (const auto* mouse = event->getIf<sf::Event::MouseMoved>()) {
                 if (!state.draggingObjectPosition && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && state.currentSelectedObject != std::nullopt && state.currentSelectedObject.value().lock()->GetGlobalBounds().contains(state.GetMousePosition()) && !imgui::GetIO().WantCaptureMouse) {
                     //selectedObject->lock()->SetPosition(sf::Vector2f(currentMousePosition));
-                    dragOffset = mouse->position - sf::Vector2i(state.currentSelectedObject->lock()->GetPosition());
+                    dragOffset = state.GetMousePosition() - state.currentSelectedObject->lock()->GetPosition();
                     state.draggingObjectPosition = true;
                 }
             }
@@ -158,16 +160,20 @@ void App::run()
 
             if (const auto* scroll = event->getIf<sf::Event::MouseWheelScrolled>()) {
                 state.zoomFactor += sf::Vector2f(scroll->delta / 10, scroll->delta / 10);
-
-                std::cout << scroll->delta << std::endl;
+                
+                if(state.zoomFactor.x < 0.05f)
+                    state.zoomFactor.x = 0.05f;
+                if(state.zoomFactor.y < 0.05f)
+                    state.zoomFactor.y = 0.05f;
 
                 sf::FloatRect visibleArea(viewCenter, sf::Vector2f(window.getSize()).componentWiseDiv(state.zoomFactor));
 
                 view = sf::View(visibleArea);
+                
+                view.setCenter(viewCenter);
             }
         }
 
-        // TODO: this should calculute the top-left
         viewCenter = view.getCenter();
 
         if ((sf::Mouse::isButtonPressed(sf::Mouse::Button::Middle) || (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && state.currentSelectedObject == std::nullopt)) && (window.hasFocus() && !imgui::GetIO().WantCaptureMouse)) {
@@ -180,7 +186,7 @@ void App::run()
 
             auto mousePos = sf::Mouse::getPosition();
 
-            sf::Vector2f delta = sf::Vector2f(mousePos - originalMousePosition);
+            sf::Vector2f delta = sf::Vector2f(mousePos - originalMousePosition).componentWiseDiv(sf::Vector2f(2, 2));
 
             view.setCenter(originalViewPosition - delta.componentWiseDiv(state.zoomFactor));
         }
@@ -199,7 +205,7 @@ void App::run()
         }
 
         if (state.draggingObjectPosition) {
-            state.currentSelectedObject->lock()->SetPosition(sf::Vector2f(sf::Mouse::getPosition(window) - dragOffset));
+            state.currentSelectedObject->lock()->SetPosition(state.GetMousePosition() - dragOffset);
         }
 
         for (const auto& item : objects) {
@@ -253,10 +259,6 @@ void App::run()
         //window.draw(sprite);
 
         ImGui::SFML::Render(window);
-        
-        red.setPosition(state.GetMousePosition());
-        window.draw(red);
-
         window.display();
 
         for (int i = 0; i < objects.size(); i++) {

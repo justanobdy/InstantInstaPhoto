@@ -72,6 +72,4 @@ private:
 	std::vector<sf::RectangleShape> slideOutlines;
 
 	std::unordered_map<std::string, std::function<void(const nlohmann::json&)>> createMap;
-
-	sf::RectangleShape red;
 };

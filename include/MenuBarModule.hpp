@@ -14,13 +14,9 @@ public:
 private:
 	void AddItems();
 
-	void Export();
-
 	void SaveProject();
 
 	void OpenProject();
-
-	Exporter exporter;
 
 	ProjectManager projectManager;
 };

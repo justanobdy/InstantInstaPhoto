@@ -8,11 +8,11 @@
 #include <Object.hpp>
 
 struct ProjectSettings {
-	sf::Vector2f imageResolution = sf::Vector2f(1920, 1080);
+	sf::Vector2f imageResolution = sf::Vector2f(1080, 1080);
 
 	sf::Color backgroundColor = sf::Color::Black;
 
-	int totalSlides = 1;
+	int totalSlides = 3;
 };
 
 struct AppState {
@@ -32,5 +32,5 @@ struct AppState {
 
 	ProjectSettings projectSettings;
 
-	sf::Vector2f zoomFactor = sf::Vector2f(2, 2);
+	sf::Vector2f zoomFactor = sf::Vector2f(1, 1);
 };

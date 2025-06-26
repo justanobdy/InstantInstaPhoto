@@ -2,52 +2,60 @@
 
 #include <App.hpp>
 
-Exporter::Exporter(std::weak_ptr<App> app)
-	:	app(app)
-{
+namespace Export {
+	void ExportImage(const std::filesystem::path& path, const std::string& name, const std::string& filetype, const ProjectSettings& settings, const std::vector<std::shared_ptr<Object>>& objects)
+	{
+		bool found = false;
 
-}
+		for (const auto& type : GetPossibleOutputTypes()) {
+			if (type == filetype) {
+				found = true;
+			}
+		}
 
-void Exporter::ExportImage(const std::filesystem::path& path, sf::Vector2u resolution)
-{
-	const auto outputResolution = sf::Vector2u(resolution.x * app.lock()->state.projectSettings.totalSlides, resolution.y);
+		if (!found) {
+			return;
+		}
 
-	sf::RenderTexture texture(outputResolution);
+		const auto outputResolution = sf::Vector2u(settings.imageResolution.x * settings.totalSlides, settings.imageResolution.y);
 
-	texture.clear(app.lock()->state.projectSettings.backgroundColor);
+		sf::RenderTexture texture(outputResolution);
 
-	for (const auto& object : app.lock()->GetObjects()) {
-		texture.draw(*object);
-	}
+		texture.clear(settings.backgroundColor);
 
-	texture.display();
+		for (const auto& object : objects) {
+			texture.draw(*object);
+		}
 
-	sf::Image image = texture.getTexture().copyToImage();
+		texture.display();
 
-	std::vector<sf::Image> outputImages;
+		sf::Image image = texture.getTexture().copyToImage();
 
-	std::string extension = path.extension().generic_string();
+		std::vector<sf::Image> outputImages;
 
-	if (extension.empty())
-		extension = ".png";
+		for (int i = 0; i < settings.totalSlides; i++) {
+			sf::Image newImage = sf::Image(sf::Vector2u(settings.imageResolution), settings.backgroundColor);
 
-	for (int i = 0; i < app.lock()->state.projectSettings.totalSlides; i++) {
-		sf::Image newImage = sf::Image(resolution, app.lock()->state.projectSettings.backgroundColor);
+			newImage.copy(image, sf::Vector2u(0, 0), sf::IntRect(sf::Vector2i(settings.imageResolution.x * i, 0), sf::Vector2i(settings.imageResolution)));
 
-		newImage.copy(image, sf::Vector2u(0, 0), sf::IntRect(sf::Vector2i(resolution.x * i, 0), sf::Vector2i(resolution)));
+			std::string outputFile;
 
-		std::string outputFile;
+			outputFile = path.generic_string() + "/" + name + "_" + std::to_string(i) + filetype;
 
-		outputFile = path.parent_path().generic_string() + "/" + path.stem().generic_string() + "_" + std::to_string(i) + extension;
-
-		if (!newImage.saveToFile(outputFile)) {
-			std::cout << "Could not save file: " << outputFile << "!\n";
+			if (!newImage.saveToFile(outputFile)) {
+				std::cout << "Could not save file: " << outputFile << "!\n";
+			}
 		}
 	}
 
-	//image.resize(resolution);
-
-	/*if (!image.saveToFile(path)) {
-		std::cout << "could not save file!" << std::endl;
-	}*/
+	std::vector<std::string> GetPossibleOutputTypes()
+	{
+		// The types of images that SFML can save, as per https://www.sfml-dev.org/documentation/3.0.1/classsf_1_1Image.html#a3e5834cd9862f4dc77ed495b78f67f2d
+		return {
+			".bmp",
+			".png",
+			".tga",
+			".jpg"
+		};
+	}
 }

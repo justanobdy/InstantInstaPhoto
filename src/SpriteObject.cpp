@@ -9,6 +9,8 @@
 #include <ErrorModule.hpp>
 #include <App.hpp>
 
+#include <JsonHelper.hpp>
+
 SpriteObject::SpriteObject(std::weak_ptr<App> app)
 	: Object(app), texture(sf::Vector2u(1, 1)), sprite(texture)
 {
@@ -131,15 +133,15 @@ void SpriteObject::Deserialize(const nlohmann::json& json)
 	}
 	*/
 
-	SetTexture(json["filename"]);
+	SetTexture(json.at("filename"));
 
-	sprite.setPosition(sf::Vector2f(json["position"]["x"], json["position"]["y"]));
-	sprite.setScale(sf::Vector2f(json["scale"]["x"], json["scale"]["y"]));
-	sprite.setRotation(sf::radians(json["angle"]));
+	sprite.setPosition(json.at("scale").template get<sf::Vector2f>());
+	sprite.setScale(json.at("scale").template get<sf::Vector2f>());
+	sprite.setRotation(sf::radians(json.at("angle")));
 
-	SetName(json["name"]);
+	SetName(json.at("name"));
 
-	filename = std::string(json["filename"]);
+	filename = std::string(json.at("filename"));
 }
 
 nlohmann::json SpriteObject::Serialize() const
@@ -150,15 +152,9 @@ nlohmann::json SpriteObject::Serialize() const
 	json["filename"] = filename.generic_string();
 	json["name"] = GetName();
 
-	json["position"] = {
-		{"x", sprite.getPosition().x},
-		{"y", sprite.getPosition().y}
-	};
+	json["position"] = sprite.getPosition();
 
-	json["scale"] = {
-		{"x", sprite.getScale().x},
-		{"y", sprite.getScale().y}
-	};
+	json["scale"] = sprite.getScale();
 
 	json["angle"] = sprite.getRotation().asRadians();
 

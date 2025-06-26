@@ -94,192 +94,27 @@ void theme(ImGuiStyle* style) {
 
 void App::run()
 {
-    state.window = &window;
-
-    const sf::Vector2u windowSize = sf::Vector2u(640, 480);
-
-    window.create(sf::VideoMode(windowSize), "Instant Insta Photo");
-    window.setFramerateLimit(60);
-    ImGui::SFML::Init(window, false);
-
-    theme(&imgui::GetStyle());
-
-    sf::Clock deltaClock;
-
-    view = sf::View(sf::FloatRect({ 0.f, 0.f }, sf::Vector2f(windowSize)));
-
-    //imgui::GetIO().FontGlobalScale = 1.5f;
-    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
-    imgui::GetIO().Fonts->ClearFonts();
-    imgui::GetIO().Fonts->AddFontFromFileTTF("fnt/InterVariable.ttf", 25);
-
-    imgui::SFML::UpdateFontTexture();
-
-    window.setFileDroppingEnabled(true);
-
-    bool mousePressedLastFrame = false;
-
-    sf::Vector2f dragOffset = sf::Vector2f(0, 0);
-
-    state.view = &view;
+    Init();
 
     while (window.isOpen()) {
         while (const auto event = window.pollEvent()) {
             ImGui::SFML::ProcessEvent(window, *event);
 
-            if (event->is<sf::Event::Closed>()) {
-                window.close();
-            }
-
-            if (const auto* resized = event->getIf<sf::Event::Resized>())
-            {
-                sf::FloatRect visibleArea({0, 0}, sf::Vector2f(resized->size).componentWiseDiv(state.zoomFactor));
-
-                view = sf::View(visibleArea);
-                
-                view.setCenter(viewCenter);
-            }
-
-            if (const auto* mouse = event->getIf<sf::Event::MouseMoved>()) {
-                if (!state.draggingObjectPosition && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && state.currentSelectedObject != std::nullopt && state.currentSelectedObject.value().lock()->GetGlobalBounds().contains(state.GetMousePosition()) && !imgui::GetIO().WantCaptureMouse) {
-                    //selectedObject->lock()->SetPosition(sf::Vector2f(currentMousePosition));
-                    dragOffset = state.GetMousePosition() - state.currentSelectedObject->lock()->GetPosition();
-                    state.draggingObjectPosition = true;
-                }
-            }
-
-            if (const auto dropped = event->getIf<sf::Event::FilesDropped>()) {
-                for (const auto& item : dropped->filenames) {
-                    AddObject<SpriteObject>(std::filesystem::path(item));
-                }
-            }
-
-            if (const auto* scroll = event->getIf<sf::Event::MouseWheelScrolled>()) {
-                state.zoomFactor += sf::Vector2f(scroll->delta / 10, scroll->delta / 10);
-                
-                if(state.zoomFactor.x < 0.05f)
-                    state.zoomFactor.x = 0.05f;
-                if(state.zoomFactor.y < 0.05f)
-                    state.zoomFactor.y = 0.05f;
-
-                sf::FloatRect visibleArea(viewCenter, sf::Vector2f(window.getSize()).componentWiseDiv(state.zoomFactor));
-
-                view = sf::View(visibleArea);
-                
-                view.setCenter(viewCenter);
-            }
+            HandleEvents(event);
         }
 
         viewCenter = view.getCenter();
+        window.setView(view);
 
         //TODO:
         // Add keyboard shortcuts
-        // add better error handling everywhere (but specifically around loading projects)
+        // add better error handling everywhere
 
-        if ((sf::Mouse::isButtonPressed(sf::Mouse::Button::Middle) || (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && state.currentSelectedObject == std::nullopt)) && (window.hasFocus() && !imgui::GetIO().WantCaptureMouse)) {
-            if (!isDraggingView) {
-                isDraggingView = true;
+        Update();
 
-                originalMousePosition = sf::Mouse::getPosition();
-                originalViewPosition = view.getCenter();
-            }
+        Draw();
 
-            auto mousePos = sf::Mouse::getPosition();
-
-            // TODO: look into why this is messed up on mac
-            sf::Vector2f delta = sf::Vector2f(mousePos - originalMousePosition);
-
-            view.setCenter(originalViewPosition - delta.componentWiseDiv(state.zoomFactor));
-        }
-        else {
-            isDraggingView = false;
-        }
-
-        window.setView(view);
-
-        ImGui::SFML::Update(window, deltaClock.restart());
-
-        imgui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
-
-        if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-            state.draggingObjectPosition = false;
-        }
-
-        if (state.draggingObjectPosition) {
-            state.currentSelectedObject->lock()->SetPosition(state.GetMousePosition() - dragOffset);
-        }
-
-        for (const auto& item : objects) {
-            item->Update();
-        }
-
-        std::sort(objects.begin(), objects.end(), [](std::shared_ptr<Object>& first, std::shared_ptr<Object>& second) {
-            return first->GetZLayer() < second->GetZLayer();
-            });
-
-        for (const auto& module : modules) {
-            module->Update();
-        }
-
-        if (imgui::IsMouseClicked(ImGuiMouseButton_Left)) {
-            auto mousePos = state.GetMousePosition();
-
-            if(!imgui::GetIO().WantCaptureMouse)
-                state.currentSelectedObject = std::nullopt;
-
-            for (int i = objects.size() - 1; i >= 0; i--) {
-                auto& item = objects[i];
-                
-                if (item->GetGlobalBounds().contains(mousePos)) {
-                    state.currentSelectedObject = item;
-
-                    break;
-                }
-            }
-        }
-
-        window.clear();
-
-        //std::cout << view.getSize().x << std::endl;
-
-        window.draw(previewRectangle);
-
-        for (const auto& shape : slideOutlines) {
-            window.draw(shape);
-        }
-
-        for (const auto& item : objects) {
-            //window.draw(*item);
-            item->Draw(window);
-        }
-
-        for (const auto& module : modules) {
-            window.draw(*module);
-        }
-
-        //window.draw(sprite);
-
-        ImGui::SFML::Render(window);
-        window.display();
-
-        for (int i = 0; i < objects.size(); i++) {
-            if (objects[i]->QueuedForDeletion()) {
-                if (state.currentSelectedObject.has_value() && state.currentSelectedObject.value().lock()->ID == objects[i]->ID) {
-                    state.currentSelectedObject = std::nullopt;
-                }
-
-                objects.erase(objects.begin() + i);
-                i--;
-            }
-        }
-
-        for (int i = 0; i < modules.size(); i++) {
-            if (modules[i]->QueuedForDeletion()) {
-                modules.erase(modules.begin() + i);
-                i--;
-            }
-        }
+        CleanObjects();
     }
 
     ImGui::SFML::Shutdown();
@@ -335,5 +170,193 @@ void App::ApplySettings(const ProjectSettings& newSettings)
         newShape.setOutlineThickness(2);
 
         slideOutlines.push_back(newShape);
+    }
+}
+
+void App::HandleEvents(const std::optional<sf::Event>& event)
+{
+    if (event->is<sf::Event::Closed>()) {
+        window.close();
+    }
+
+    if (const auto* resized = event->getIf<sf::Event::Resized>())
+    {
+        sf::FloatRect visibleArea({ 0, 0 }, sf::Vector2f(resized->size).componentWiseDiv(state.zoomFactor));
+
+        view = sf::View(visibleArea);
+
+        view.setCenter(viewCenter);
+    }
+
+    if (const auto* mouse = event->getIf<sf::Event::MouseMoved>()) {
+        if (!state.draggingObjectPosition && sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && state.currentSelectedObject != std::nullopt && state.currentSelectedObject.value().lock()->GetGlobalBounds().contains(state.GetMousePosition()) && !imgui::GetIO().WantCaptureMouse) {
+            //selectedObject->lock()->SetPosition(sf::Vector2f(currentMousePosition));
+            dragOffset = state.GetMousePosition() - state.currentSelectedObject->lock()->GetPosition();
+            state.draggingObjectPosition = true;
+        }
+    }
+
+    if (const auto dropped = event->getIf<sf::Event::FilesDropped>()) {
+        for (const auto& item : dropped->filenames) {
+            AddObject<SpriteObject>(std::filesystem::path(item));
+        }
+    }
+
+    if (const auto* scroll = event->getIf<sf::Event::MouseWheelScrolled>()) {
+        state.zoomFactor += sf::Vector2f(scroll->delta / 10, scroll->delta / 10);
+
+        if (state.zoomFactor.x < 0.05f)
+            state.zoomFactor.x = 0.05f;
+        if (state.zoomFactor.y < 0.05f)
+            state.zoomFactor.y = 0.05f;
+
+        sf::FloatRect visibleArea(viewCenter, sf::Vector2f(window.getSize()).componentWiseDiv(state.zoomFactor));
+
+        view = sf::View(visibleArea);
+
+        view.setCenter(viewCenter);
+    }
+}
+
+void App::Init()
+{
+    state.window = &window;
+
+    const sf::Vector2u windowSize = sf::Vector2u(640, 480);
+
+    window.create(sf::VideoMode(windowSize), "Instant Insta Photo");
+    window.setFramerateLimit(60);
+    ImGui::SFML::Init(window, false);
+
+    theme(&imgui::GetStyle());
+
+    view = sf::View(sf::FloatRect({ 0.f, 0.f }, sf::Vector2f(windowSize)));
+
+    //imgui::GetIO().FontGlobalScale = 1.5f;
+    ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+    imgui::GetIO().Fonts->ClearFonts();
+    imgui::GetIO().Fonts->AddFontFromFileTTF("fnt/InterVariable.ttf", 20); // TODO: this should be in a settings window, not hardcoded
+
+    imgui::SFML::UpdateFontTexture();
+
+    window.setFileDroppingEnabled(true);
+
+    state.view = &view;
+}
+
+void App::Update() {
+    // Update ImGui
+
+    ImGui::SFML::Update(window, deltaClock.restart());
+
+    imgui::DockSpaceOverViewport(0, nullptr, ImGuiDockNodeFlags_PassthruCentralNode);
+
+    // Handle panning view
+
+    if ((sf::Mouse::isButtonPressed(sf::Mouse::Button::Middle) || (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && state.currentSelectedObject == std::nullopt)) && (window.hasFocus() && !imgui::GetIO().WantCaptureMouse)) {
+        if (!isDraggingView) {
+            isDraggingView = true;
+
+            originalMousePosition = sf::Mouse::getPosition();
+            originalViewPosition = view.getCenter();
+        }
+
+        auto mousePos = sf::Mouse::getPosition();
+
+        // TODO: look into why this is messed up on mac
+        sf::Vector2f delta = sf::Vector2f(mousePos - originalMousePosition);
+
+        view.setCenter(originalViewPosition - delta.componentWiseDiv(state.zoomFactor));
+    }
+    else {
+        isDraggingView = false;
+    }
+
+    // Update modules and objects
+
+    for (const auto& item : objects) {
+        item->Update();
+    }
+
+    for (const auto& module : modules) {
+        module->Update();
+    }
+
+    // Handle dragging objects
+
+    // This needs to be after updating objects and modules, due to weirdness with SelectModule
+    // TODO (if you dare): fix this ^^^^
+
+    if (!sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+        state.draggingObjectPosition = false;
+    }
+
+    if (state.draggingObjectPosition) {
+        state.currentSelectedObject->lock()->SetPosition(state.GetMousePosition() - dragOffset);
+    }
+
+    if (imgui::IsMouseClicked(ImGuiMouseButton_Left)) {
+        auto mousePos = state.GetMousePosition();
+
+        if (!imgui::GetIO().WantCaptureMouse)
+            state.currentSelectedObject = std::nullopt;
+
+        for (int i = objects.size() - 1; i >= 0; i--) {
+            auto& item = objects[i];
+
+            if (item->GetGlobalBounds().contains(mousePos)) {
+                state.currentSelectedObject = item;
+
+                break;
+            }
+        }
+    }
+}
+
+void App::Draw()
+{
+    std::sort(objects.begin(), objects.end(), [](std::shared_ptr<Object>& first, std::shared_ptr<Object>& second) {
+        return first->GetZLayer() < second->GetZLayer();
+        });
+
+    window.clear();
+
+    window.draw(previewRectangle);
+
+    for (const auto& shape : slideOutlines) {
+        window.draw(shape);
+    }
+
+    for (const auto& item : objects) {
+        item->Draw(window);
+    }
+
+    for (const auto& module : modules) {
+        window.draw(*module);
+    }
+
+    ImGui::SFML::Render(window);
+    window.display();
+}
+
+void App::CleanObjects()
+{
+    for (int i = 0; i < objects.size(); i++) {
+        if (objects[i]->QueuedForDeletion()) {
+            if (state.currentSelectedObject.has_value() && state.currentSelectedObject.value().lock()->ID == objects[i]->ID) {
+                state.currentSelectedObject = std::nullopt;
+            }
+
+            objects.erase(objects.begin() + i);
+            i--;
+        }
+    }
+
+    for (int i = 0; i < modules.size(); i++) {
+        if (modules[i]->QueuedForDeletion()) {
+            modules.erase(modules.begin() + i);
+            i--;
+        }
     }
 }

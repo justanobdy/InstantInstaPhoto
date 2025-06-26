@@ -53,6 +53,16 @@ private:
 
 	void SetupObjectMap();
 
+	void HandleEvents(const std::optional<sf::Event>& event);
+
+	void Init();
+
+	void Update();
+
+	void Draw();
+
+	void CleanObjects();
+
 	std::vector<std::shared_ptr<Object>> objects;
 
 	std::vector<std::shared_ptr<Module>> modules;
@@ -72,4 +82,8 @@ private:
 	std::vector<sf::RectangleShape> slideOutlines;
 
 	std::unordered_map<std::string, std::function<void(const nlohmann::json&)>> createMap;
+
+	sf::Vector2f dragOffset = sf::Vector2f(0, 0);
+
+	sf::Clock deltaClock;
 };

@@ -6,9 +6,5 @@ sf::Vector2f AppState::GetMousePosition() const
 
 	const sf::Vector2f calculuatedViewOffset = view->getCenter() - view->getSize().componentWiseDiv(sf::Vector2f(2, 2));
 
-	//position += calculuatedViewOffset;
-
-	//position = position.componentWiseDiv(zoomFactor);
-
 	return position;
 }

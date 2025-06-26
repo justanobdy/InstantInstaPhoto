@@ -6,6 +6,8 @@
 
 #include <fstream>
 
+#include <JsonHelper.hpp>
+
 ProjectManager::ProjectManager(std::weak_ptr<App> app)
 	:	app(app)
 {
@@ -33,14 +35,27 @@ void ProjectManager::DeserializeFromFile(const std::filesystem::path& file)
 
 	ProjectSettings newSettings;
 
-	newSettings.imageResolution = sf::Vector2f(json["data"]["resolution"]["x"], json["data"]["resolution"]["y"]);
-	newSettings.backgroundColor = sf::Color(json["data"]["backgroundColor"]["r"], json["data"]["backgroundColor"]["g"], json["data"]["backgroundColor"]["b"]);
-	newSettings.totalSlides = json["data"]["slides"];
+	try {
+		if (!json.at("data").is_null()) {
+			auto data = json["data"];
 
-	app.lock()->NewProject(newSettings);
+			newSettings.imageResolution = data.at("resolution").template get<sf::Vector2f>();
 
-	for (const nlohmann::json& object : json["objects"]) {
-		app.lock()->AddObjectFromJson(object);
+			newSettings.backgroundColor = data.at("backgroundColor").template get<sf::Color>();
+
+			newSettings.totalSlides = data.at("slides");
+		}
+
+		app.lock()->NewProject(newSettings);
+
+		if (!json.at("objects").is_null()) {
+			for (const nlohmann::json& object : json.at("objects")) {
+				app.lock()->AddObjectFromJson(object);
+			}
+		}
+	}
+	catch (const std::exception& e) {
+		std::cout << e.what() << std::endl;
 	}
 }
 
@@ -50,16 +65,9 @@ void ProjectManager::SerializeToFile(const std::filesystem::path& file)
 
 	std::shared_ptr<App> app = this->app.lock();
 
-	data["resolution"] = {
-		{"x", app->state.projectSettings.imageResolution.x},
-		{"y", app->state.projectSettings.imageResolution.y}
-	};
+	data["resolution"] = app->state.projectSettings.imageResolution;
 
-	data["backgroundColor"] = {
-		{"r", app->state.projectSettings.backgroundColor.r},
-		{"g", app->state.projectSettings.backgroundColor.g},
-		{"b", app->state.projectSettings.backgroundColor.b}
-	};
+	data["backgroundColor"] = app->state.projectSettings.backgroundColor;
 
 	data["slides"] = app->state.projectSettings.totalSlides;
 

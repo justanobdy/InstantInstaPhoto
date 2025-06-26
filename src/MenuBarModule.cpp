@@ -6,9 +6,12 @@
 
 #include <NewProjectModule.hpp>
 #include <EditProjectModule.hpp>
+#include <ErrorModule.hpp>
+
+#include <ExportModule.hpp>
 
 MenuBarModule::MenuBarModule(std::weak_ptr<App> app)
-	:	ImGuiModule(app), exporter(app), projectManager(app)
+	:	ImGuiModule(app), projectManager(app)
 {
 
 }
@@ -38,7 +41,7 @@ void MenuBarModule::Update()
 			imgui::Separator();
 
 			if (imgui::MenuItem("Export")) {
-				Export();
+				app.lock()->AddModule<ExportModule>();
 			}
 
 			imgui::EndMenu();
@@ -69,15 +72,6 @@ void MenuBarModule::AddItems() {
 
 	for (const auto& filename : selection.result()) {
 		app.lock()->AddObject<SpriteObject>(filename);
-	}
-}
-
-void MenuBarModule::Export()
-{
-	auto result = pfd::save_file("Save Image", ".", { "Image Files", "*.bmp *.png *.tga *.jpg" });
-
-	if (!result.result().empty()) {
-		exporter.ExportImage(result.result(), sf::Vector2u(app.lock()->state.projectSettings.imageResolution));
 	}
 }
 

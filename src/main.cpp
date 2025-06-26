@@ -13,6 +13,10 @@
 #include <ObjectContextModule.hpp>
 #include <MenuBarModule.hpp>
 
+//TODO:
+// Add settings window
+// Allow multiple items to be selected
+
 int Object::lastID = 0;
 
 int main() {

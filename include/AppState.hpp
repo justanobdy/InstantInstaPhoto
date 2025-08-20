@@ -6,6 +6,7 @@
 #include <optional>
 
 #include <Object.hpp>
+#include <Settings.hpp>
 
 struct ProjectSettings {
 	sf::Vector2f imageResolution = sf::Vector2f(1080, 1080);
@@ -33,4 +34,6 @@ struct AppState {
 	ProjectSettings projectSettings;
 
 	sf::Vector2f zoomFactor = sf::Vector2f(1, 1);
+
+	Settings settings;
 };

@@ -45,6 +45,8 @@ public:
 
 	void ApplySettings(const ProjectSettings& newSettings);
 
+	void ApplyAppSettings(const Settings& newSettings);
+
 	AppState state;
 
 	std::vector<std::shared_ptr<Object>>& GetObjects();

@@ -173,6 +173,12 @@ void App::ApplySettings(const ProjectSettings& newSettings)
     }
 }
 
+void App::ApplyAppSettings(const Settings &newSettings) {
+    // shouldApply = true
+
+    imgui::GetIO().Fonts->AddFontFromFileTTF("fnt/InterVariable.ttf", newSettings.fontScale);
+}
+
 void App::HandleEvents(const std::optional<sf::Event>& event)
 {
     if (event->is<sf::Event::Closed>()) {
@@ -236,7 +242,7 @@ void App::Init()
     ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
     imgui::GetIO().Fonts->ClearFonts();
-    imgui::GetIO().Fonts->AddFontFromFileTTF("fnt/InterVariable.ttf", 20); // TODO: this should be in a settings window, not hardcoded
+    imgui::GetIO().Fonts->AddFontFromFileTTF("fnt/InterVariable.ttf", 16); // TODO: this should be in a settings window, not hardcoded
 
     imgui::SFML::UpdateFontTexture();
 

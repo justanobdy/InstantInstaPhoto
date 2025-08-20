@@ -7,6 +7,7 @@
 #include <NewProjectModule.hpp>
 #include <EditProjectModule.hpp>
 #include <ErrorModule.hpp>
+#include <SettingsWindow.hpp>
 
 #include <ExportModule.hpp>
 
@@ -42,6 +43,10 @@ void MenuBarModule::Update()
 
 			if (imgui::MenuItem("Export")) {
 				app.lock()->AddModule<ExportModule>();
+			}
+
+			if (imgui::MenuItem("Settings")) {
+				app.lock()->AddModule<SettingsWindow>();
 			}
 
 			imgui::EndMenu();

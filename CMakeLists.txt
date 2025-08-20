@@ -48,11 +48,13 @@ set(HEADERS
     "include/ErrorModule.hpp"
     "include/JsonHelper.hpp"
     "include/ExportModule.hpp"
+    "include/SettingsWindow.hpp"
+    "include/Settings.hpp"
 )
 
 set(SOURCES
         src/main.cpp
- "src/SpriteObject.cpp" "src/App.cpp"  "src/SelectModule.cpp" "src/Object.cpp" "src/DetailModule.cpp" "src/ObjectListModule.cpp" "src/AppState.cpp" "src/Exporter.cpp" "src/Module.cpp" "src/ObjectContextModule.cpp" "src/MenuBarModule.cpp" "src/NewProjectModule.cpp" "src/EditProjectModule.cpp" "src/ProjectManager.cpp" "src/ErrorModule.cpp" "src/JsonHelper.cpp" "src/ExportModule.cpp")
+ "src/SpriteObject.cpp" "src/App.cpp"  "src/SelectModule.cpp" "src/Object.cpp" "src/DetailModule.cpp" "src/ObjectListModule.cpp" "src/AppState.cpp" "src/Exporter.cpp" "src/Module.cpp" "src/ObjectContextModule.cpp" "src/MenuBarModule.cpp" "src/NewProjectModule.cpp" "src/EditProjectModule.cpp" "src/ProjectManager.cpp" "src/ErrorModule.cpp" "src/JsonHelper.cpp" "src/ExportModule.cpp" "src/SettingsWindow.cpp")
 
 add_executable(${PROJECT_NAME}
         ${SOURCES}
